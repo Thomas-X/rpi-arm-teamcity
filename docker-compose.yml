@@ -1,0 +1,7 @@
+teamcity:
+  build: teamcity
+  restart: always
+  ports:
+    - "8111:8111"
+  volumes:
+    - ./teamcity/storage:/root/BuildServer
