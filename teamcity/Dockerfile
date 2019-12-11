@@ -1,5 +1,21 @@
 FROM ubuntu:18.04
 
+# Try any of these options
+# FROM hypriot/rpi-java
+# FROM arm32v7/openjdk
+# FROM arm64v8/openjdk
+# FROM openjdk:8
+
+# script to install jdk/jre manually
+# RUN apt install openjdk-8-jdk openjdk-8-jre
+
+# random notes
+# apt search openjdk
+# apt update
+# apt full-upgrade
+# reboot
+
+
 ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
 
 RUN apt-get update \
@@ -7,32 +23,6 @@ RUN apt-get update \
     && echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen \
     && locale-gen en_US.UTF-8 \
     && rm -rf /var/lib/apt/lists/*
-
-# JDK preparation start
-
-ARG MD5SUM='3511152bd52c867f8b550d7c8d7764aa'
-ARG JDK_URL='https://d3pxv6yz143wms.cloudfront.net/8.232.09.1/amazon-corretto-8.232.09.1-linux-x64.tar.gz'
-
-RUN set -eux; \
-    curl -LfsSo /tmp/openjdk.tar.gz ${JDK_URL}; \
-    echo "${MD5SUM} */tmp/openjdk.tar.gz" | md5sum -c -; \
-    mkdir -p /opt/java/openjdk; \
-    cd /opt/java/openjdk; \
-    tar -xf /tmp/openjdk.tar.gz --strip-components=1; \
-    rm -rf /tmp/openjdk.tar.gz;
-
-ENV JAVA_HOME=/opt/java/openjdk \
-    JRE_HOME=/opt/java/openjdk/jre \
-    PATH="/opt/java/openjdk/bin:$PATH"
-
-RUN update-alternatives --install /usr/bin/java java ${JRE_HOME}/bin/java 1 && \
-    update-alternatives --set java ${JRE_HOME}/bin/java && \
-    update-alternatives --install /usr/bin/javac javac ${JRE_HOME}/../bin/javac 1 && \
-    update-alternatives --set javac ${JRE_HOME}/../bin/javac
-
-# JDK preparation end
-##################################
-
 
 ENV TEAMCITY_DATA_PATH=/data/teamcity_server/datadir \
     TEAMCITY_DIST=/opt/teamcity \
@@ -64,15 +54,3 @@ VOLUME $TEAMCITY_DATA_PATH \
        $TEAMCITY_LOGS
 
 CMD ["/run-services.sh"]
-
-
-MAINTAINER thomas-x <thomas.zwarts.codes>
-
-RUN wget -v https://download-cf.jetbrains.com/teamcity/TeamCity-2019.1.5.tar.gz && \
-    tar -xzvf TeamCity-2019.1.5.tar.gz && \
-    rm TeamCity-2019.1.5.tar.gz
-
-EXPOSE 8111 9090
-
-ENV TEAMCITY_DATA_PATH /root/BuildServer
-ENTRYPOINT ["TeamCity/bin/teamcity-server.sh","run"]
